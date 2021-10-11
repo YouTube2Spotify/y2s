@@ -6,6 +6,12 @@
   "background": {
     "service_worker": "/js/background.js"
   },
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": ["/js/ytButton.js"]
+    }
+  ],
   "permissions": ["storage", "activeTab", "scripting"],
   "options_page": "/html/options.html",
   "action": {
