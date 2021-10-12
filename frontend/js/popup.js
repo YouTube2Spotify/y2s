@@ -21,9 +21,15 @@ document.addEventListener('DOMContentLoaded', () => {
       'interactive': true
     }, redirectUrl => {
       const url = new URL(redirectUrl);
-      console.log(url)
       const params = new URLSearchParams(url.search);
-      console.log(params.get('code'))
+      const authToken = params.get('code');
+
+      if (authToken === null) {
+        console.log('failed to retrieve auth token')
+      } else {
+        console.log(authToken)
+      };
+
     });
   });
 
