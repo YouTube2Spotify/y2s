@@ -1,19 +1,21 @@
 document.addEventListener('DOMContentLoaded', () => {
   let authToken;
 
-  document.getElementById('spotify-login').addEventListener('click', () => {
+  document.getElementById('spotify-login').addEventListener('click', async () => {
     const response_type = 'code';
     const client_id = 'cc9e2365a9c1461ea9a251d446f347d0';
     const redirect_uri = chrome.identity.getRedirectURL();
     const scope = 'playlist-modify-private playlist-read-private';
     const state = ranString();
+    const code_verifier = ranString();
+    const code_challenge = await challenge_from_verifier(code_verifier)
     const code_challenge_method = 'S256';
 
     let url = `https://accounts.spotify.com/authorize?response_type=${response_type}` +
       `&client_id=${client_id}` +
       `&redirect_uri=${redirect_uri}` +
       `&scope=${scope}` +
-      `&code_challenge=${state}` +
+      `&code_challenge=${code_challenge}` +
       `&code_challenge_method=${code_challenge_method}`
 
     chrome.identity.launchWebAuthFlow({
@@ -27,19 +29,17 @@ document.addEventListener('DOMContentLoaded', () => {
       if (authToken === null) {
         console.log('failed to retrieve auth token')
       } else {
-        const payload = {
-          client_id: client_id,
-          grant_type: 'authorization_code',
-          code: authToken,
-          redirect_uri: redirect_uri,
-          code_verifier: state
-        };
+        const queryString = `https://accounts.spotify.com/api/token` +
+          `?client_id=${client_id}` +
+          `&grant_type=authorization_code` +
+          `&code=${authToken}` +
+          `&redirect_uri=${redirect_uri}` +
+          `&code_verifier=${code_verifier}`
 
-        fetch('https://accounts.spotify.com/api/token', {
+        fetch(queryString, {
           method: 'POST',
           mode: 'cors',
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          params: JSON.stringify(payload)
         })
         .then( response => response.json())
         .then( data => console.log(data));
@@ -52,11 +52,37 @@ document.addEventListener('DOMContentLoaded', () => {
     str = "";
     let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-    for (let i = 0; i < 45; i++) {
+    for (let i = 0; i < 56; i++) {
       str += possible.charAt(Math.floor(Math.random() * possible.length));
     }
     return str;
   };
+
+  function sha256(plain) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(plain);
+    return window.crypto.subtle.digest('SHA-256', data);
+  }
+  
+  function base64urlencode(a) {
+    let str = "";
+    const bytes = new Uint8Array(a);
+    console.log(bytes)
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+      str += String.fromCharCode(bytes[i]);
+    }
+    return btoa(str)
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+  }
+  
+  async function challenge_from_verifier(v) {
+    let hashed = await sha256(v);
+    let base64encoded = base64urlencode(hashed);
+    return base64encoded;
+  }
 
 });
 
