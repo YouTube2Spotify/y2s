@@ -1,6 +1,10 @@
 require("dotenv").config();
 const port = process.env.PORT;
-const express = require('express');
+const express = require("express");
+var cors = require("cors");
+
+// Routes
+const vidProcess = require("./src/controllers/vidProcess");
 
 // Initialize App
 const app = express();
@@ -13,8 +17,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // Routes
-// app.use(require("./src/controllers/auth"));
-app.use(require("./src/controllers/routes"));
+app.use(cors());
+app.use("/api/vidProcess", vidProcess);
+
+app.get("/", (req, res) => {
+	return res.json({ response: "Hello World" });
+});
 
 // Start server
 app.listen(port, () => {
