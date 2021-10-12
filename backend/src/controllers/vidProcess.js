@@ -1,11 +1,13 @@
 const express = require("express");
 const router = express.Router();
-const { testFunction } = require("../helpers");
+const { convertVideo } = require("../helpers");
 const util = require("util");
 
+// Convert youtube vid to audio
 router.post("/get_songs", (req, res) => {
-	console.log(req);
-	console.log(`Body contents inspected: ${util.inspect(req.body.videoUrl)}`);
+	let accessToken = req.body.accessToken;
+	let vidURL = req.body.videoUrl;
+	convertVideo(vidURL).then((res) => console.log(res));
 });
 
 module.exports = router;
