@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const redirect_uri = chrome.identity.getRedirectURL();
+  let authToken;
 
   document.getElementById('spotify-login').addEventListener('click', () => {
     const response_type = 'code';
@@ -22,12 +22,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }, redirectUrl => {
       const url = new URL(redirectUrl);
       const params = new URLSearchParams(url.search);
-      const authToken = params.get('code');
+      authToken = params.get('code');
 
       if (authToken === null) {
         console.log('failed to retrieve auth token')
       } else {
-        console.log(authToken)
+        const payload = {
+          client_id: client_id,
+          grant_type: 'authorization_code',
+          code: authToken,
+          redirect_uri: redirect_uri,
+          code_verifier: state
+        };
+
+        fetch('https://accounts.spotify.com/api/token', {
+          method: 'POST',
+          mode: 'cors',
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          params: JSON.stringify(payload)
+        })
+        .then( response => response.json())
+        .then( data => console.log(data));
       };
 
     });
