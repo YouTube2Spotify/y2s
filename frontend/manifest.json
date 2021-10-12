@@ -12,7 +12,7 @@
       "js": ["/js/ytButton.js"]
     }
   ],
-  "permissions": ["storage", "activeTab", "scripting"],
+  "permissions": ["storage", "activeTab", "scripting", "identity"],
   "options_page": "/html/options.html",
   "action": {
     "default_popup": "/html/popup.html",
