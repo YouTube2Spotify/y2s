@@ -10,7 +10,7 @@ const vidProcess = require("./src/controllers/vidProcess");
 const app = express();
 
 // Set up express static folder
-app.use(express.static("public"));
+// app.use(express.static("public"));
 
 // Use Body Parser
 app.use(express.urlencoded({ extended: true }));
