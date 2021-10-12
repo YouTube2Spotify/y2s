@@ -1,7 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
   let authToken;
 
-  document.getElementById('spotify-login').addEventListener('click', async () => {
+  document.getElementById('spotify-login').addEventListener('click', spotifyLogin)
+
+  async function spotifyLogin() {
     const response_type = 'code';
     const client_id = 'cc9e2365a9c1461ea9a251d446f347d0';
     const redirect_uri = chrome.identity.getRedirectURL();
@@ -42,11 +44,21 @@ document.addEventListener('DOMContentLoaded', () => {
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
         })
         .then( response => response.json())
-        .then( data => console.log(data));
+        .then( data => {
+          chrome.storage.sync.set({
+            refreshToken: data.refresh_token,
+            accessToken: data.access_token,
+            timeStamp: Date.now()
+          }, () => {
+            console.log('data stored locally')
+          })
+        })
+        .catch( error => {
+          console.log(error);
+        })
       };
-
     });
-  });
+  };
 
   function ranString() {
     str = "";
@@ -54,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     for (let i = 0; i < 56; i++) {
       str += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
+    };
     return str;
   };
 
@@ -62,27 +74,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const encoder = new TextEncoder();
     const data = encoder.encode(plain);
     return window.crypto.subtle.digest('SHA-256', data);
-  }
+  };
   
-  function base64urlencode(a) {
+  function base64urlencode(hash) {
     let str = "";
-    const bytes = new Uint8Array(a);
-    console.log(bytes)
+    const bytes = new Uint8Array(hash);
     const len = bytes.byteLength;
     for (let i = 0; i < len; i++) {
       str += String.fromCharCode(bytes[i]);
-    }
+    };
     return btoa(str)
       .replace(/\+/g, "-")
       .replace(/\//g, "_")
       .replace(/=+$/, "");
-  }
+  };
   
-  async function challenge_from_verifier(v) {
-    let hashed = await sha256(v);
-    let base64encoded = base64urlencode(hashed);
+  async function challenge_from_verifier(verifier) {
+    let hashedString = await sha256(verifier);
+    let base64encoded = base64urlencode(hashedString);
     return base64encoded;
-  }
+  };
 
 });
-
