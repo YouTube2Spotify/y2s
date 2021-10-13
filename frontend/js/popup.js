@@ -1,13 +1,20 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
 	document.getElementById("spotify-login").addEventListener("click", spotifyLogin);
 
-	chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
-		if (req.title) {
-			let songAdded = document.createElement('p');
-			songAdded.innerHTML = `${req.title} by ${req.artist} has been added to your liked songs on Spotify!`
-			document.getElementById('song-added').appendChild(songAdded);
-		}
-	});
+	// Check local storage to see what the latest added song is. Update popup to reflect
+	// name and artist of the latest song added to Spotify liked songs. This method is required
+	// because chrome extension popups are destroyed when closed and can't update in the bg???
+	const newSong = await getLocalValue('addedSongTitle')
+	if (newSong.addedSongTitle) {
+		const newSongArtist = await getLocalValue('addedSongArtist');
+		const timeStored = await getLocalValue('songAddedTime');
+		const currentTime = Date.now();
+		const timePassed = (((currentTime - timeStored.songAddedTime) / 1000) / 60).toFixed(1);
+		let songAdded = document.createElement('p');
+		songAdded.innerHTML = `${newSong.addedSongTitle} by ${newSongArtist.addedSongArtist} was added to your liked songs on Spotify ${timePassed} minutes ago!`
+		document.getElementById('song-added').appendChild(songAdded);
+	}
+	
 
 	chrome.storage.sync.get('refreshToken', data => {
 		// If refresh token already exists, remove Spotify login button from extension
@@ -119,5 +126,15 @@ document.addEventListener("DOMContentLoaded", () => {
 		let hashedString = await sha256(verifier);
 		let base64encoded = base64urlencode(hashedString);
 		return base64encoded;
-	}
+	};
+
+	// Retrieve data stored in local storage. Find item by key
+	async function getLocalValue(key) {
+		return new Promise((resolve, reject) => {
+			chrome.storage.sync.get(key, (data) => {
+				resolve(data);
+			});
+		});
+	};
+
 });
