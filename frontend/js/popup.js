@@ -1,6 +1,14 @@
 document.addEventListener("DOMContentLoaded", () => {
 	document.getElementById("spotify-login").addEventListener("click", spotifyLogin);
 
+	chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
+		if (req.title && req.artist) {
+			let songAdded = document.createElement('p');
+			songAdded.innerHTML = `${data.title} by ${data.artist} has been added to your liked list on Spotify!`
+			document.getElementById('song-added').appendChild(songAdded);
+		}
+	})
+
 	async function spotifyLogin() {
 		const response_type = "code";
 		const client_id = "cc9e2365a9c1461ea9a251d446f347d0";
