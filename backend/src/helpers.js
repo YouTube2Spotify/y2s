@@ -33,7 +33,8 @@ const convertVideo = (url) => {
 
 				axios(config).then((res) => {
 					if (res.data.result != null) {
-						resolve({ songUri: res.data.result.spotify.uri });
+						console.log(res.data.result);
+						resolve(res.data.result.spotify.id);
 					} else {
 						reject({ error: "No matching spotify song" });
 					}
@@ -43,4 +44,20 @@ const convertVideo = (url) => {
 	});
 };
 
-module.exports = { convertVideo };
+const likeSpotifyTrack = (accessToken, trackId) => {
+	options = {
+		url: `https://api.spotify.com/v1/me/tracks?ids=${trackId}`,
+		method: "put",
+		headers: {
+			Authorization: "Bearer " + accessToken,
+			"Content-Type": "application/json",
+		},
+		json: true,
+	};
+
+	axios(options, (err, res, body) => {
+		console.log(res);
+	});
+};
+
+module.exports = { convertVideo, likeSpotifyTrack };
