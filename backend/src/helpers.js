@@ -9,8 +9,9 @@ const util = require("util");
 const convertVideo = (url) => {
 	return new Promise((resolve, reject) => {
 		const songPath = "./audio/newvid.webm";
-		let startTime = Date.now();
-		let endTime;
+		// let startTime = Date.now();
+		// let endTime;
+		// let chunkSize;
 
 		ytdl.getInfo(url).then((info) => {
 			let webm = ytdl.downloadFromInfo(info, {
@@ -20,13 +21,13 @@ const convertVideo = (url) => {
 			webm.pipe(fs.createWriteStream(songPath));
 			console.log("Downloading song");
 
-			webm.on("progress", (a, b, c) => {
-				console.log(a, b, c);
-			});
+			// webm.on("progress", (a, b, c) => {
+			// 	console.log(a, b, c);
+			// });
 
 			webm.on("end", () => {
-				endTime = Date.now();
-				let elapsedTime = endTime - startTime;
+				// endTime = Date.now();
+				// let elapsedTime = endTime - startTime;
 				// console.log(`${elapsedTime / 1000} secs, chunk: ${chunkSize}`);
 
 				console.log("Sending song");
