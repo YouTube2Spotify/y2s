@@ -27,7 +27,7 @@ const convertVideo = (url) => {
 			webm.on("end", () => {
 				endTime = Date.now();
 				let elapsedTime = endTime - startTime;
-				console.log(`${elapsedTime / 1000} secs, chunk: ${chunkSize}`);
+				// console.log(`${elapsedTime / 1000} secs, chunk: ${chunkSize}`);
 
 				console.log("Sending song");
 				var data = new FormData();
@@ -46,7 +46,13 @@ const convertVideo = (url) => {
 
 				axios(config).then((res) => {
 					if (res.data.result != null) {
-						resolve(res.data.result.spotify.id);
+						console.log(res.data);
+						// Handle no spotify response
+						resolve({
+							title: res.data.result.title,
+							artist: res.data.result.artist,
+							spotifyId: res.data.result.spotify.id,
+						});
 					} else {
 						reject({ error: "No matching spotify song" });
 					}
