@@ -5,7 +5,6 @@ const API_KEY = process.env.API_KEY;
 const axios = require("axios");
 const FormData = require("form-data");
 const util = require("util");
-const { resolve } = require("path");
 
 const convertVideo = (url) => {
 	return new Promise((resolve, reject) => {
@@ -33,7 +32,7 @@ const convertVideo = (url) => {
 				};
 
 				axios(config).then((res) => {
-					if (res.data.status == "success") {
+					if (res.data.result != null) {
 						resolve({ songUri: res.data.result.spotify.uri });
 					} else {
 						reject({ error: "No matching spotify song" });
