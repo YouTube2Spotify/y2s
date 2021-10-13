@@ -7,5 +7,14 @@ chrome.runtime.onMessage.addListener( (req, sender, sendResponse) => {
       addedSongArtist: req.artist,
       songAddedTime: Date.now()
     })
+
+    chrome.notifications.create('Song added!', {
+    	type: 'basic',
+    	iconUrl: '../images/icon32.png',
+    	title: 'Song added to Spotify!',
+    	message: `${req.title} by ${req.artist} has been added to your liked songs on Spotify!`
+    }, () => {
+    	console.log('notification sent!')
+    })
   }
 });

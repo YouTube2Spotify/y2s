@@ -67,13 +67,10 @@ async function getMusic() {
 			return response.json();
 		})
 		.then( data => {
-			console.log(data)
-			// let songAdded = document.createElement('p');
-			// document.getElementById('new-song').innerHTML = `${data.title} by ${data.artist} has been added to your liked list on Spotify!`
-			// document.getElementById('song-added').appendChild(songAdded);
 			chrome.runtime.sendMessage(data, res => {
 				console.log('Track data sent to extension.')
-			})
+			});	
+
 		})
 		.catch((error) => {
 			console.log(error);
