@@ -7,7 +7,7 @@ const util = require("util");
 router.post("/get_songs", (req, res) => {
 	let accessToken = req.body.accessToken;
 	let vidURL = req.body.videoUrl;
-	convertVideo(vidURL).then((res) => console.log(res));
+	convertVideo(vidURL).then((res) => console.log(res)).catch(error => console.log(error))
 });
 
 module.exports = router;
