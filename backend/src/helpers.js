@@ -11,16 +11,18 @@ const convertVideo = (url) => {
 		const songPath = "./audio/newvid.webm";
 		let startTime = Date.now();
 		let endTime;
-		let chunkSize = "100000";
 
 		ytdl.getInfo(url).then((info) => {
 			let webm = ytdl.downloadFromInfo(info, {
 				filter: "audioonly",
 				quality: "lowest",
-				dlChunkSize: chunkSize,
 			});
 			webm.pipe(fs.createWriteStream(songPath));
 			console.log("Downloading song");
+
+			webm.on("progress", (a, b, c) => {
+				console.log(a, b, c);
+			});
 
 			webm.on("end", () => {
 				endTime = Date.now();
