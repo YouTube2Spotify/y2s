@@ -2,12 +2,23 @@ document.addEventListener("DOMContentLoaded", () => {
 	document.getElementById("spotify-login").addEventListener("click", spotifyLogin);
 
 	chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
-		if (req.title && req.artist) {
+		if (req.title) {
 			let songAdded = document.createElement('p');
-			songAdded.innerHTML = `${data.title} by ${data.artist} has been added to your liked list on Spotify!`
+			songAdded.innerHTML = `${req.title} by ${req.artist} has been added to your liked songs on Spotify!`
 			document.getElementById('song-added').appendChild(songAdded);
 		}
-	})
+	});
+
+	chrome.storage.sync.get('refreshToken', data => {
+		// If refresh token already exists, remove Spotify login button from extension
+		// and display logged in message.
+		if (data.refreshToken) {
+			document.getElementById('spotify-login').style.display = 'none';
+			let loggedInMessage = document.createElement('p');
+			loggedInMessage.innerHTML = 'You are logged in to Spotify!'
+			document.getElementById('login-flow').appendChild(loggedInMessage);
+		};
+	});
 
 	async function spotifyLogin() {
 		const response_type = "code";
@@ -62,7 +73,11 @@ document.addEventListener("DOMContentLoaded", () => {
 									timeStamp: Date.now(),
 								},
 								() => {
-									console.log("data stored locally");
+									// Hide log in button and display logged in message on extension popup
+									document.getElementById('spotify-login').style.display = 'none';
+									let loggedInMessage = document.createElement('p');
+									loggedInMessage.innerHTML = 'You are logged in to Spotify!'
+									document.getElementById('login-flow').appendChild(loggedInMessage);
 								}
 							);
 						})
@@ -72,7 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				}
 			}
 		);
-	}
+	};
 
 	function ranString() {
 		str = "";
@@ -82,13 +97,13 @@ document.addEventListener("DOMContentLoaded", () => {
 			str += possible.charAt(Math.floor(Math.random() * possible.length));
 		}
 		return str;
-	}
+	};
 
 	function sha256(plain) {
 		const encoder = new TextEncoder();
 		const data = encoder.encode(plain);
 		return window.crypto.subtle.digest("SHA-256", data);
-	}
+	};
 
 	function base64urlencode(hash) {
 		let str = "";
@@ -98,7 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			str += String.fromCharCode(bytes[i]);
 		}
 		return btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-	}
+	};
 
 	async function challenge_from_verifier(verifier) {
 		let hashedString = await sha256(verifier);
