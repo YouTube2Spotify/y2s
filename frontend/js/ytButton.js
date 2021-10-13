@@ -11,6 +11,10 @@ document.addEventListener("yt-navigate-start", (event) => {
 
 // Add button to YouTube player
 function addButton() {
+	// Prevent duplicate buttons being generated if one already exists
+	if (document.getElementById('suggest-music-button') !== null) {
+		return
+	}
 	let ytRightControls = document.getElementsByClassName("ytp-right-controls")[0];
 	let suggestMusic = document.createElement("button");
 	suggestMusic.className = "ytp-suggest-button ytp-button";
@@ -60,7 +64,13 @@ async function getMusic() {
 		body: JSON.stringify(data),
 	})
 		.then((response) => {
-			console.log(response);
+			return response.json();
+		})
+		.then( data => {
+			chrome.runtime.sendMessage(data, res => {
+				console.log('Track data sent to extension.')
+			});	
+
 		})
 		.catch((error) => {
 			console.log(error);
