@@ -9,13 +9,24 @@ const util = require("util");
 const convertVideo = (url) => {
 	return new Promise((resolve, reject) => {
 		const songPath = "./audio/newvid.webm";
+		let startTime = Date.now();
+		let endTime;
+		let chunkSize = "100000";
 
 		ytdl.getInfo(url).then((info) => {
-			let webm = ytdl.downloadFromInfo(info, { filter: "audioonly" });
+			let webm = ytdl.downloadFromInfo(info, {
+				filter: "audioonly",
+				quality: "lowest",
+				dlChunkSize: chunkSize,
+			});
 			webm.pipe(fs.createWriteStream(songPath));
 			console.log("Downloading song");
 
 			webm.on("end", () => {
+				endTime = Date.now();
+				let elapsedTime = endTime - startTime;
+				console.log(`${elapsedTime / 1000} secs, chunk: ${chunkSize}`);
+
 				console.log("Sending song");
 				var data = new FormData();
 				data.append("file", fs.createReadStream(songPath));
@@ -33,7 +44,6 @@ const convertVideo = (url) => {
 
 				axios(config).then((res) => {
 					if (res.data.result != null) {
-						console.log(res.data.result);
 						resolve(res.data.result.spotify.id);
 					} else {
 						reject({ error: "No matching spotify song" });
@@ -55,7 +65,7 @@ const likeSpotifyTrack = (accessToken, trackId) => {
 		json: true,
 	};
 
-	axios(options, (err, res, body) => {
+	axios(options, (res) => {
 		console.log(res);
 	});
 };
