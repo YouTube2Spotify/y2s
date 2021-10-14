@@ -46,6 +46,8 @@ const convertVideo = (url, accessToken) => {
 				};
 
 				axios(config).then((res) => {
+					console.log(`Audd.io: ${res.data}`);
+
 					if (res.data.result != null) {
 						console.log(res.data.result);
 						// If song is recognized
