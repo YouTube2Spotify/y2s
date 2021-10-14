@@ -3,12 +3,12 @@ const router = express.Router();
 const { convertVideo, likeSpotifyTrack } = require("../helpers");
 const util = require("util");
 
-// Convert youtube vid to audio
-router.post("/get_songs", (req, res) => {
+// Recognize vid's audio, like song on spotify, return song metadata
+router.post("/like_song", (req, res) => {
 	let songInfo;
 	let accessToken = req.body.accessToken;
 	let vidURL = req.body.videoUrl;
-	convertVideo(vidURL)
+	convertVideo(vidURL, accessToken)
 		.then((res) => {
 			songInfo = res;
 			likeSpotifyTrack(accessToken, songInfo.spotifyId);
