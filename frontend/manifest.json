@@ -1,6 +1,6 @@
 {
-  "name": "Y2S",
-  "description": "Recommend music on Spotify based on what's currently playing on Youtube.",
+  "name": "YouTube 2 Spotify",
+  "description": "Liking a YouTube song adds the song to your Spotify saved songs.",
   "version": "1.0",
   "manifest_version": 3,
   "background": {
@@ -16,7 +16,7 @@
   "permissions": ["storage", "identity", "notifications"],
   "web_accessible_resources": [
     {
-      "resources": [ "/images/icon.png" ],
+      "resources": [ "/images/icon128.png" ],
       "matches": [ "*://*.youtube.com/*" ]
     },
     {
@@ -26,6 +26,7 @@
   ],
   "options_page": "/html/options.html",
   "action": {
+    "default_title": "👀👀👄👀👀",
     "default_popup": "/html/popup.html",
     "default_icon": {
       "16": "/images/icon16.png",
