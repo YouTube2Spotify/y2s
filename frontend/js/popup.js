@@ -13,8 +13,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 		let songAdded = document.createElement('p');
 		songAdded.innerHTML = `${newSong.addedSongTitle} by ${newSongArtist.addedSongArtist} was added to your liked songs on Spotify ${timePassed} minutes ago!`
 		document.getElementById('song-added').appendChild(songAdded);
-	}
-	
+	} else {
+		let songNotFound = document.createElement('p');
+		songNotFound.innerHTML = 'The last song you attempted to add to Spotify was not found.'
+		document.getElementById('song-added').append(songNotFound);
+	};
 
 	chrome.storage.sync.get('refreshToken', data => {
 		// If refresh token already exists, remove Spotify login button from extension

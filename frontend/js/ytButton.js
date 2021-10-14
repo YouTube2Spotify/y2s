@@ -57,7 +57,7 @@ async function getMusic() {
 	const accessToken = await getLocalValue("accessToken");
 	const data = { videoUrl: document.URL, accessToken: accessToken.accessToken };
 
-	fetch(`https://y2s.main.benchan.tech/api/vidProcess/get_songs`, {
+	fetch(`http://localhost:3000/api/vidProcess/get_songs`, {
 		method: "POST",
 		mode: "cors",
 		headers: { "Content-Type": "application/json" },
