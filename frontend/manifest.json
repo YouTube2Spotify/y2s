@@ -24,7 +24,10 @@
       "matches": [ "*://*.youtube.com/*" ]
     }
   ],
-  "options_page": "/html/options.html",
+  "options_ui": {
+    "page": "/html/options.html",
+    "open_in_tab": false
+  },
   "action": {
     "default_title": "👀👀👄👀👀",
     "default_popup": "/html/popup.html",

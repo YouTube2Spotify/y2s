@@ -31,7 +31,6 @@ async function getMusic() {
 
 	const accessToken = await getLocalValue("accessToken");
 	const data = { videoUrl: tabUrl, accessToken: accessToken.accessToken };
-  console.log(tabUrl)
 
 	fetch(`http://localhost:3000/api/like_song`, {
 		method: "POST",
@@ -116,6 +115,7 @@ function songAdded(data) {
     songAddedTime: Date.now()
   })
 
+  // Send notification to desktop
   chrome.notifications.create('Song added!', {
     type: 'basic',
     iconUrl: '../images/icon32.png',
@@ -124,6 +124,10 @@ function songAdded(data) {
   }, () => {
     console.log('notification sent!')
   })
+
+  // Show notification badge
+  chrome.action.setBadgeBackgroundColor({ color: 'red'});
+  chrome.action.setBadgeText({ text: '1'});
 };
 
 // Delete song info from local storage if song is not successfully added to Spotify. This

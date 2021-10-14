@@ -1,6 +1,9 @@
 document.addEventListener("DOMContentLoaded", async () => {
 	document.getElementById("spotify-login").addEventListener("click", spotifyLogin);
 
+	// Hide any notification badges currently showing
+  chrome.action.setBadgeText({ text: ''});
+
 	// Check local storage to see what the latest added song is. Update popup to reflect
 	// name and artist of the latest song added to Spotify liked songs. This method is required
 	// because chrome extension popups are destroyed when closed and can't update in the bg???
