@@ -107,6 +107,8 @@ async function getNewTokens(refreshToken) {
 	});
 }
 
+// When song is found and added successfully to Spotify, the data is stored in local storage.
+// This is used so that the information can be viewed on the chrome extension popup.
 function songAdded(data) {
   chrome.storage.sync.set({
     addedSongTitle: data.title,
@@ -124,6 +126,9 @@ function songAdded(data) {
   })
 };
 
+// Delete song info from local storage if song is not successfully added to Spotify. This
+// will trigger the chrome popup to notify the user that the song was not found and therefore
+// unable to be added.
 function songNotFound() {
   chrome.storage.sync.remove(['addedSongTitle', 'addedSongArtist', 'songAddedTime' ], () => {
     chrome.storage.sync.set({ error: 'Song not found' })
