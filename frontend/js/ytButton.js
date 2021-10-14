@@ -20,7 +20,7 @@ function addButton() {
 	suggestMusic.style.verticalAlign = "top";
 	let img = document.createElement("img");
 	img.id = "spotify-button-img";
-	img.src = chrome.runtime.getURL("/images/icon.png");
+	img.src = chrome.runtime.getURL("/images/icon128.png");
 	suggestMusic.className = "ytp-suggest-button ytp-button";
 	suggestMusic.id = "suggest-music-button";
 	suggestMusic.onclick = getMusic;
