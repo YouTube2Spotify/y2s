@@ -11,3 +11,7 @@
 #spotify-button-img:hover {
 	filter: brightness(0.65);
 }
+
+#suggest-music-button {
+  vertical-align: top;
+}
