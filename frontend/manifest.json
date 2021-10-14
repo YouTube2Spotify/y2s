@@ -13,6 +13,7 @@
       "css": ["/css/styles.css"]
     }
   ],
+  "key": "",
   "permissions": ["storage", "identity", "notifications"],
   "web_accessible_resources": [
     {
