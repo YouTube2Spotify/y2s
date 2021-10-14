@@ -9,10 +9,21 @@
   "content_scripts": [
     {
       "matches": ["*://*.youtube.com/*"],
-      "js": ["/js/ytButton.js"]
+      "js": ["/js/ytButton.js"],
+      "css": ["/css/styles.css"]
     }
   ],
   "permissions": ["storage", "identity", "notifications"],
+  "web_accessible_resources": [
+    {
+      "resources": [ "/images/icon.png" ],
+      "matches": [ "*://*.youtube.com/*" ]
+    },
+    {
+      "resources": ["/css/styles.css"],
+      "matches": [ "*://*.youtube.com/*" ]
+    }
+  ],
   "options_page": "/html/options.html",
   "action": {
     "default_popup": "/html/popup.html",
