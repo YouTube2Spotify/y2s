@@ -56,7 +56,7 @@ async function getMusic() {
 	const accessToken = await getLocalValue("accessToken");
 	const data = { videoUrl: document.URL, accessToken: accessToken.accessToken };
 
-	fetch(`http://localhost:3000/api/vidProcess/get_songs`, {
+	fetch(`http://localhost:3000/api/like_song`, {
 		method: "POST",
 		mode: "cors",
 		headers: { "Content-Type": "application/json" },

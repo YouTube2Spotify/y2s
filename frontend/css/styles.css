@@ -1,9 +1,4 @@
-body {
-	max-height: 280px;
-	width: 300px;
-	overflow: auto;
-}
-
+/* Player button */
 #spotify-button-img {
 	height: 25px;
 	width: auto;
