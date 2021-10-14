@@ -47,6 +47,7 @@ const convertVideo = (url, accessToken) => {
 
 				axios(config).then((res) => {
 					if (res.data.result != null) {
+						console.log(res.data.result);
 						// If song is recognized
 
 						if (res.data.result.spotify) {
@@ -59,7 +60,7 @@ const convertVideo = (url, accessToken) => {
 							});
 						} else {
 							// If API returns no spotify data
-							console.log("API did not spotify id, searching spotify w/ song data");
+							console.log("API did not return spotify id, searching spotify w/ song data");
 							searchSpotify(accessToken, res.data.result.title, res.data.result.artist)
 								.then((spotifyId) => {
 									resolve({
@@ -110,6 +111,7 @@ const searchSpotify = (accessToken, title, artist) => {
 
 		axios(options)
 			.then((res) => {
+				console.log(res.data);
 				console.log(res.data.tracks.items[0].id);
 				resolve(res.data.tracks.items[0].id);
 			})
