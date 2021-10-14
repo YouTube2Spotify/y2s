@@ -17,7 +17,7 @@ router.post("/like_song", (req, res) => {
 			console.log(songInfo);
 			res.json(songInfo);
 		})
-		.catch( error => {
+		.catch((error) => {
 			console.log(error);
 			res.json(error);
 		});

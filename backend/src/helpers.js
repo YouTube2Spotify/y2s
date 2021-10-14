@@ -99,25 +99,32 @@ const likeSpotifyTrack = (accessToken, trackId) => {
 };
 
 const searchSpotify = (accessToken, title, artist) => {
-	return new Promise((resolve, reject) => {
-		let options = {
-			url: `https://api.spotify.com/v1/search/?q=track:${title} artist:${artist}&type=track`,
-			method: "get",
-			headers: {
-				Authorization: "Bearer " + accessToken,
-			},
-			json: true,
-		};
+	// Artist name may have ; /
+	let artistList = artist.split(/[\/\;]/);
+	console.log(`Artist List: ${artistList}`);
 
-		axios(options)
-			.then((res) => {
-				console.log(res.data);
-				console.log(res.data.tracks.items[0].id);
-				resolve(res.data.tracks.items[0].id);
-			})
-			.catch((err) => {
-				reject(err);
-			});
+	return new Promise((resolve, reject) => {
+		for (let i = 0; i < artistList.length; i++) {
+			let options = {
+				url: `https://api.spotify.com/v1/search/?q=track:${title} artist:${artistList[i]}&type=track&limit=1`,
+				method: "get",
+				headers: {
+					Authorization: "Bearer " + accessToken,
+				},
+				json: true,
+			};
+
+			axios(options)
+				.then((res) => {
+					if (res.data.tracks.total != 0) {
+						console.log(`Found title for ${artistList[i]}`);
+						resolve(res.data.tracks.items[0].id);
+					}
+				})
+				.catch((err) => {
+					reject(err);
+				});
+		}
 	});
 };
 
