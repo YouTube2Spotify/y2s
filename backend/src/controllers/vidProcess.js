@@ -17,7 +17,10 @@ router.post("/get_songs", (req, res) => {
 			console.log(songInfo);
 			res.json(songInfo);
 		})
-		.catch((error) => console.log(error));
+		.catch( error => {
+			console.log(error);
+			res.json(error);
+		});
 });
 
 module.exports = router;
