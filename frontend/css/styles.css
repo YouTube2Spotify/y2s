@@ -7,3 +7,7 @@
 	display: block;
 	margin: auto;
 }
+
+#spotify-button-img:hover {
+	filter: brightness(0.65);
+}

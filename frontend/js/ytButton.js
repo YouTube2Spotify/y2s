@@ -17,6 +17,7 @@ function addButton() {
 	}
 	let ytRightControls = document.getElementsByClassName("ytp-right-controls")[0];
 	let suggestMusic = document.createElement("button");
+	suggestMusic.title = "Save to Spotify";
 	suggestMusic.style.verticalAlign = "top";
 	let img = document.createElement("img");
 	img.id = "spotify-button-img";
