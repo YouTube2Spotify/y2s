@@ -73,6 +73,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 					})
 						.then((response) => response.json())
 						.then((data) => {
+							console.log(data)
 							chrome.storage.sync.set(
 								{
 									refreshToken: data.refresh_token,
