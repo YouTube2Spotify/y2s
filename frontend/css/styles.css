@@ -1,5 +1,14 @@
 body {
-  max-height: 280px; 
-  width: 300px;
-  overflow: auto;
+	max-height: 280px;
+	width: 300px;
+	overflow: auto;
+}
+
+#spotify-button-img {
+	height: 25px;
+	width: auto;
+	top: 0;
+	bottom: 0;
+	display: block;
+	margin: auto;
 }
