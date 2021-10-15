@@ -22,7 +22,7 @@ YouTube 2 Spotify saves the currently playing YouTube song into your Spotify lib
 
     ```
     git clone https://github.com/benchan777/y2s.git
-    cd y2s
+    cd backend/y2s
     npm install
     cp .env.sample .env
     ```
