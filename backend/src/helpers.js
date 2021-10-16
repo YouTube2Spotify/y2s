@@ -1,5 +1,5 @@
-require("dotenv").config({ path: `${process.cwd()}/src/.env` });
-let fs = require("fs");
+require("dotenv").config();
+const fs = require("fs");
 const ffmpeg = require("fluent-ffmpeg");
 const AUDDIO_API_KEY = process.env.AUDDIO_API_KEY;
 const axios = require("axios");
@@ -77,6 +77,9 @@ const matchAudio = (url, accessToken) => {
 						}
 					} else {
 						// audd.io does not recognize song
+						console.log("No Auddio match.");
+
+						// Should change this message to say that audd.io failed to recognize the song
 						reject({ error: "No matching spotify song" });
 					}
 				});
@@ -101,17 +104,19 @@ const likeSpotifyTrack = (accessToken, trackId) => {
 };
 
 const searchSpotify = (accessToken, title, artist) => {
-	// Artist name may have ; /
+	// Multiple artists separated by ; or /
 	let artistList = artist.split(/[\/\;]/);
-	console.log(`Artist List: ${artistList}`);
 
 	return new Promise((resolve, reject) => {
 		for (let i = 0; i < artistList.length; i++) {
+			// Handle non-alphabet symbols in title/artist names
+			let query = encodeURI(`track:${title} artist:${artistList[i]}`);
+
 			let options = {
-				url: `https://api.spotify.com/v1/search/?q=track:${title} artist:${artistList[i]}&type=track&limit=1`,
+				url: `https://api.spotify.com/v1/search?query=${query}&type=track&limit=1`,
 				method: "get",
 				headers: {
-					Authorization: "Bearer " + accessToken,
+					Authorization: `Bearer ${accessToken}`,
 				},
 				json: true,
 			};
@@ -121,6 +126,8 @@ const searchSpotify = (accessToken, title, artist) => {
 					if (res.data.tracks.total != 0) {
 						console.log(`Found title for ${artistList[i]}`);
 						resolve(res.data.tracks.items[0].id);
+					} else {
+						reject({ error: "Manual spotify search returned no results" });
 					}
 				})
 				.catch((err) => {
@@ -161,4 +168,11 @@ const convertVideo = (videoId) => {
 	});
 };
 
+// searchSpotify(
+// 	"BQA3nnC5J40RMvyuEy_mIFZvtuc874-W6cdp0tJVQFhQxRBssXX3goL2nkSEXDuFDQ1EkX5yAduROs2M4w6nplPjwNS_sE-Ha-3ERLgim5UQPY0_yrb_OHaKdeBoxk-2bpZx9j8ftzJxKV1701j_Iy5Txn2_G8VKolYct6Vqf5qv4dvfUUBwuGURDhTtYbr7Mecx4_Y",
+// 	"test",
+// 	"Test"
+// )
+// 	.then(() => console.log("hi"))
+// 	.catch((err) => console.log(err));
 module.exports = { matchAudio, likeSpotifyTrack, downloadVideo };
