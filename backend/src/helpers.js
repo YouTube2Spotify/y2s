@@ -1,99 +1,86 @@
-require("dotenv").config();
+require("dotenv").config({ path: `${process.cwd()}/src/.env` });
 let fs = require("fs");
-let ytdl = require("ytdl-core");
 const ffmpeg = require("fluent-ffmpeg");
-const API_KEY = process.env.API_KEY;
+const AUDDIO_API_KEY = process.env.AUDDIO_API_KEY;
 const axios = require("axios");
 const FormData = require("form-data");
-const util = require("util");
+const { spawn } = require("child_process");
 
-const convertVideo = (url, accessToken) => {
+// console.log(`Source code directory: ${__dirname}`);
+// console.log(`Working directory: ${process.cwd()}`);
+
+const matchAudio = (url, accessToken) => {
 	let videoId = url.split("?v=")[1];
+	let videoPath = `./audio/${videoId}.mp4`;
+	let audioPath = `./audio/${videoId}.mp3`;
+
 	return new Promise((resolve, reject) => {
-		const webmPath = `./audio/${videoId}.webm`;
-		const audioPath = `./audio/${videoId}.mp3`;
-		let startTime = Date.now();
+		downloadVideo(url)
+			.then(() => {
+				return new Promise((resolve, reject) => {
+					convertVideo(videoId)
+						.then(() => {
+							resolve();
+						})
+						.catch((err) => {
+							reject(err);
+						});
+				});
+			})
+			.then(() => {
+				var data = new FormData();
+				data.append("file", fs.createReadStream(audioPath));
+				data.append("api_token", AUDDIO_API_KEY);
+				data.append("return", "spotify");
 
-		ytdl.getInfo(url).then((info) => {
-			let webm = ytdl.downloadFromInfo(info, {
-				filter: "audioonly",
-				quality: "lowest",
-			});
-			webm.pipe(fs.createWriteStream(webmPath));
-			console.log("Downloading...");
+				var config = {
+					method: "post",
+					url: "https://api.audd.io/",
+					headers: {
+						...data.getHeaders(),
+					},
+					data: data,
+				};
 
-			webm.on("end", () => {
-				let endTime = Date.now();
-				let elapsedTime = endTime - startTime;
-				console.log(`${elapsedTime / 1000} secs`);
+				// Send payload
+				axios(config).then((res) => {
+					// Delete webm and mp3
+					fs.unlinkSync(videoPath);
+					fs.unlinkSync(audioPath);
 
-				// Convert webm to mp3
-				ffmpeg(webmPath)
-					.duration(24)
-					.format("mp3")
-					.save(audioPath)
-					.on("error", (err) => console.log(`Error converting: ${err.message}`))
-					.on("start", () => console.log("Converting..."))
-					.on("end", () => {
-						console.log("Conversion complete. Sending audio.");
+					if (res.data.result != null) {
+						// audd.io recognizes song
+						console.log(res.data.result);
 
-						// Construct audd.io payload
-						var data = new FormData();
-						data.append("file", fs.createReadStream(audioPath));
-						data.append("api_token", API_KEY);
-						data.append("return", "spotify");
-
-						var config = {
-							method: "post",
-							url: "https://api.audd.io/",
-							headers: {
-								...data.getHeaders(),
-							},
-							data: data,
-						};
-
-						// Send payload
-						axios(config).then((res) => {
-							// Delete webm and mp3
-							fs.unlinkSync(webmPath);
-							fs.unlinkSync(audioPath);
-							console.log(`Audd.io: ${res.data}`);
-
-							if (res.data.result != null) {
-								// audd.io recognizes song
-								console.log(res.data.result);
-
-								if (res.data.result.spotify) {
-									// audd.io returns spotify data
-									console.log("API returned spotify id");
+						if (res.data.result.spotify) {
+							// audd.io returns spotify data
+							console.log("Auddio returned spotify id");
+							resolve({
+								title: res.data.result.title,
+								artist: res.data.result.artist,
+								spotifyId: res.data.result.spotify.id,
+							});
+						} else {
+							// audd.io does not return spotify data
+							console.log("Auddio did not return spotify id, searching spotify w/ song data");
+							searchSpotify(accessToken, res.data.result.title, res.data.result.artist)
+								.then((spotifyId) => {
 									resolve({
 										title: res.data.result.title,
 										artist: res.data.result.artist,
-										spotifyId: res.data.result.spotify.id,
+										spotifyId: spotifyId,
 									});
-								} else {
-									// audd.io does not return spotify data
-									console.log("API did not return spotify id, searching spotify w/ song data");
-									searchSpotify(accessToken, res.data.result.title, res.data.result.artist)
-										.then((spotifyId) => {
-											resolve({
-												title: res.data.result.title,
-												artist: res.data.result.artist,
-												spotifyId: spotifyId,
-											});
-										})
-										.catch((err) => {
-											reject(err);
-										});
-								}
-							} else {
-								// audd.io does not recognize song
-								reject({ error: "No matching spotify song" });
-							}
-						});
-					});
+								})
+								.catch((err) => {
+									reject(err);
+								});
+						}
+					} else {
+						// audd.io does not recognize song
+						reject({ error: "No matching spotify song" });
+					}
+				});
 			});
-		});
 	});
 };
 
@@ -143,4 +130,35 @@ const searchSpotify = (accessToken, title, artist) => {
 	});
 };
 
-module.exports = { convertVideo, likeSpotifyTrack };
+const downloadVideo = (url) => {
+	return new Promise((resolve, reject) => {
+		console.log("Downloading video...");
+		let processVideo = spawn("python", [`${__dirname}/downloadVideo.py`, url]);
+
+		processVideo.stdout.on("data", (data) => {
+			resolve();
+		});
+
+		processVideo.stderr.on("data", (data) => console.log(data.toString()));
+	});
+};
+
+const convertVideo = (videoId) => {
+	return new Promise((resolve, reject) => {
+		ffmpeg(`./audio/${videoId}.mp4`)
+			.duration(24)
+			.format("mp3")
+			.save(`./audio/${videoId}.mp3`)
+			.on("error", (err) => {
+				console.log(err);
+				reject({ error: `Error converting ${videoId}.mp4` });
+			})
+			.on("start", () => console.log("Converting..."))
+			.on("end", () => {
+				console.log("Conversion complete.");
+				resolve();
+			});
+	});
+};
+
+module.exports = { matchAudio, likeSpotifyTrack, downloadVideo };
