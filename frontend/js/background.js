@@ -1,4 +1,5 @@
 let tabUrl;
+let lastNotificationId;
 
 chrome.runtime.onMessage.addListener((message, sender) => {
 	if (message.message == "get music") {
@@ -118,25 +119,21 @@ function songAdded(data) {
 			addedSongTitle: data.title,
 			addedSongArtist: data.artist,
 			songAddedTime: Date.now()
-		});
-
-		// Send notification to desktop
-		chrome.notifications.create(
-			"Song added!",
-			{
-				type: "basic",
-				iconUrl: "../images/icon32.png",
-				title: "Song added to Spotify!",
-				message: `${data.title} by ${data.artist} has been added to your liked songs on Spotify!`,
-			},
-			() => {
-				console.log("notification sent!");
-			}
-		);
-
-		// Show notification badge
-		chrome.action.setBadgeBackgroundColor({ color: "red" });
-		chrome.action.setBadgeText({ text: "1" });
+		}, () => {
+			// Send notification to desktop
+			chrome.notifications.create(
+				'', {
+					type: "basic",
+					iconUrl: "../images/icon128.png",
+					title: "Song added to Spotify!",
+					message: `${data.title} by ${data.artist} has been added to your liked songs on Spotify!`,
+				}, () => {
+					// Show notification badge
+					chrome.action.setBadgeBackgroundColor({ color: "red" });
+					chrome.action.setBadgeText({ text: "1" });
+				}
+			);
+		})
 	});
 }
 
@@ -145,23 +142,20 @@ function songAdded(data) {
 // unable to be added.
 function songNotFound() {
 	chrome.storage.sync.remove(["addedSongTitle", "addedSongArtist", "songAddedTime"], () => { // Remove previously added tracks history
-		chrome.storage.sync.set({ error: "Song not found" });
-		chrome.notifications.create(
-			"Song not found",
-			{
-				type: "basic",
-				iconUrl: "../images/icon32.png",
-				title: "Song not found",
-				message: `Unfortunately, the song could not be found so nothing was added to your liked songs list on Spotify.`,
-			},
-			() => {
-				console.log("song not found notification sent!");
-			}
-		);
-
-		// Show notification badge
-		chrome.action.setBadgeBackgroundColor({ color: "red" });
-		chrome.action.setBadgeText({ text: "1" });
+		chrome.storage.sync.set({ error: "Song not found" }, () => {
+			chrome.notifications.create(
+				'', {
+					type: "basic",
+					iconUrl: "../images/icon128.png",
+					title: "Song not found",
+					message: `Unfortunately, the song could not be found so nothing was added to your liked songs list on Spotify.`,
+				}, () => {	
+					// Show notification badge
+					chrome.action.setBadgeBackgroundColor({ color: "red" });
+					chrome.action.setBadgeText({ text: "1" });
+				}
+			);
+		})
 	});
 }
 
