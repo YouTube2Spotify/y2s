@@ -85,16 +85,18 @@ Note: These steps are listed for developmental purposes. It is not necessary to 
 # Releases
 ## Backend
 
--   **Current release**: [v1.0-stable](https://github.com/benchan777/y2s/releases)
+-   **Current release**: [v1.0.0-stable](https://github.com/benchan777/y2s/releases)
 -   **Release Notes**:
     - Use pytube rather than node-youtube-dl to significantly increase audio download speed
     - Entire process of downloading audio, recognizing the song, and adding the song to Spotify now takes ~3 seconds rather than 15-20+ seconds
 
 ## Chrome Extension
--   **Current release**: [v1.0-stable](https://github.com/benchan777/y2s/releases)
+-   **Current release**: [v1.0.0-stable](https://github.com/benchan777/y2s/releases)
 -   **Release Notes**:
     - Added notification badge when song is not found and not added to Spotify liked list
     - Fixed issue with a wrong error message being displayed on the popup when user isn't logged in
+    - Fixed issue where notifications would not always pop up
+    - Fixed issue where notification badge would sometimes not show up on first usage after extension is installed
 -   **Next planned release**:
     - Options page to toggle different settings in the extension
 
