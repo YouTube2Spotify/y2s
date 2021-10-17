@@ -15,82 +15,61 @@ const matchAudio = (url, accessToken) => {
 	let audioPath = `./audio/${videoId}.mp3`;
 
 	return new Promise((resolve, reject) => {
-		downloadVideo(url)
-			.then(() => {
-				return new Promise((resolve, reject) => {
-					convertVideo(videoId)
-						.then(() => {
-							resolve();
+		var data = new FormData();
+		data.append("file", fs.createReadStream(audioPath));
+		data.append("api_token", AUDDIO_API_KEY);
+		data.append("return", "spotify");
+
+		var config = {
+			method: "post",
+			url: "https://api.audd.io/",
+			headers: {
+				...data.getHeaders(),
+			},
+			data: data,
+		};
+
+		// Send payload
+		axios(config).then((res) => {
+			// Delete webm and mp3
+			fs.unlinkSync(videoPath);
+			fs.unlinkSync(audioPath);
+
+			if (res.data.result != null) {
+				// audd.io recognizes song
+				console.log(res.data.result);
+
+				if (res.data.result.spotify) {
+					// audd.io returns spotify data
+					console.log("Auddio returned spotify id");
+					resolve({
+						title: res.data.result.title,
+						artist: res.data.result.artist,
+						spotifyId: res.data.result.spotify.id,
+					});
+				} else {
+					// audd.io does not return spotify data
+					console.log("Auddio did not return spotify id, searching spotify w/ song data");
+					searchSpotify(accessToken, res.data.result.title, res.data.result.artist)
+						.then((spotifyId) => {
+							resolve({
+								title: res.data.result.title,
+								artist: res.data.result.artist,
+								spotifyId: spotifyId,
+							});
 						})
 						.catch((err) => {
 							reject(err);
 						});
-				});
-			})
-			.then(() => {
-				var data = new FormData();
-				data.append("file", fs.createReadStream(audioPath));
-				data.append("api_token", AUDDIO_API_KEY);
-				data.append("return", "spotify");
+				}
+			} else {
+				// audd.io does not recognize song
+				console.log("No Auddio match.");
 
-				var config = {
-					method: "post",
-					url: "https://api.audd.io/",
-					headers: {
-						...data.getHeaders(),
-					},
-					data: data,
-				};
-
-				// Send payload
-				axios(config).then((res) => {
-					// Delete webm and mp3
-					fs.unlinkSync(videoPath);
-					fs.unlinkSync(audioPath);
-
-					if (res.data.result != null) {
-						// audd.io recognizes song
-						console.log(res.data.result);
-
-						if (res.data.result.spotify) {
-							// audd.io returns spotify data
-							console.log("Auddio returned spotify id");
-							resolve({
-								title: res.data.result.title,
-								artist: res.data.result.artist,
-								spotifyId: res.data.result.spotify.id,
-							});
-						} else {
-							// audd.io does not return spotify data
-							console.log("Auddio did not return spotify id, searching spotify w/ song data");
-							searchSpotify(accessToken, res.data.result.title, res.data.result.artist)
-								.then((spotifyId) => {
-									resolve({
-										title: res.data.result.title,
-										artist: res.data.result.artist,
-										spotifyId: spotifyId,
-									});
-								})
-								.catch((err) => {
-									reject(err);
-								});
-						}
-					} else {
-						// audd.io does not recognize song
-						console.log("No Auddio match.");
-
-						// Should change this message to say that audd.io failed to recognize the song
-						reject({ error: "No matching spotify song" });
-					}
-				});
-			})
-			.catch( err => {
-				// Delete webm and mp3
-				fs.unlinkSync(videoPath);
-				fs.unlinkSync(audioPath);
-				
-				reject({ error: "Error creating FormData. Possible lack of env file." });
-			});
+				// Should change this message to say that audd.io failed to recognize the song
+				reject({ error: "No matching spotify song" });
+			}
+		});
 	});
 };
 
@@ -182,4 +161,4 @@ const convertVideo = (videoId) => {
 // )
 // 	.then(() => console.log("hi"))
 // 	.catch((err) => console.log(err));
-module.exports = { matchAudio, likeSpotifyTrack, downloadVideo };
+module.exports = { matchAudio, likeSpotifyTrack, downloadVideo, convertVideo };
