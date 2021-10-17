@@ -74,19 +74,22 @@ const matchAudio = (url, accessToken) => {
 };
 
 const likeSpotifyTrack = (accessToken, trackId) => {
-	let options = {
-		url: `https://api.spotify.com/v1/me/tracks?ids=${trackId}`,
-		method: "put",
-		headers: {
-			Authorization: "Bearer " + accessToken,
-			"Content-Type": "application/json",
-		},
-		json: true,
-	};
-
-	axios(options).then(() => {
-		console.log("Song liked.");
-	});
+	return new Promise((resolve, reject) => {
+		let options = {
+			url: `https://api.spotify.com/v1/me/tracks?ids=${trackId}`,
+			method: "put",
+			headers: {
+				Authorization: "Bearer " + accessToken,
+				"Content-Type": "application/json",
+			},
+			json: true,
+		};
+	
+		axios(options).then(() => {
+			console.log("Song liked.");
+			resolve();
+		});
+	})
 };
 
 const searchSpotify = (accessToken, title, artist) => {
@@ -129,7 +132,11 @@ const downloadVideo = (url) => {
 		let processVideo = spawn("python3", [`${__dirname}/downloadVideo.py`, url]);
 
 		processVideo.stdout.on("data", (data) => {
-			resolve();
+			if (data.toString() == 'noMetadata\n') {
+				resolve('no metadata')
+			} else if (data.toString() == 'metadataFound\n') {
+				resolve('found metadata')
+			}
 		});
 
 		processVideo.stderr.on("data", (data) => console.log(data.toString()));
@@ -161,4 +168,4 @@ const convertVideo = (videoId) => {
 // )
 // 	.then(() => console.log("hi"))
 // 	.catch((err) => console.log(err));
-module.exports = { matchAudio, likeSpotifyTrack, downloadVideo, convertVideo };
+module.exports = { matchAudio, likeSpotifyTrack, downloadVideo, convertVideo, searchSpotify };
