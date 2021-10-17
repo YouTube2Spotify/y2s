@@ -1,10 +1,6 @@
-let tabUrl;
-let lastNotificationId;
-
 chrome.runtime.onMessage.addListener((message, sender) => {
 	if (message.message == "get music") {
-		tabUrl = message.url;
-		getMusic();
+		getMusic(message.url);
 	}
 
 	if (message.message == "spotify login") {
@@ -12,30 +8,28 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 	}
 });
 
-async function getMusic() {
-	const accessTokenTime = await getLocalValue("accessTokenTimestamp");
-	const timeDifference = await elapsedTime(accessTokenTime.accessTokenTimestamp);
+async function getMusic(url) {
+	const { accessTokenTimestamp } = await getLocalValue("accessTokenTimestamp");
+	const elapsedTime = (Date.now() - accessTokenTimestamp) / 1000;
 
 	// Generate new tokens if 50 min has elapsed since generation of last access token
-	if (timeDifference > 3000) {
-		const refreshToken = await getLocalValue("refreshToken");
-		const newToken = await getNewTokens(refreshToken.refreshToken);
+	if (elapsedTime > 3000) {
+		const { refreshToken } = await getLocalValue("refreshToken");
+		const newToken = await getNewTokens(refreshToken);
 
 		// Store refreshed access token in database
-		chrome.storage.sync.set(
-			{
+		chrome.storage.sync.set({
 				refreshToken: newToken.refresh_token,
 				accessToken: newToken.access_token,
 				accessTokenTimestamp: Date.now(),
-			},
-			() => {
+			}, () => {
 				console.log("new access token stored successfully");
 			}
 		);
 	}
 
-	const accessToken = await getLocalValue("accessToken");
-	const data = { videoUrl: tabUrl, accessToken: accessToken.accessToken };
+	const { accessToken } = await getLocalValue("accessToken");
+	const data = { videoUrl: url, accessToken: accessToken };
 
 	fetch(`https://y2s.main.benchan.tech/api/like_song`, {
 		method: "POST",
@@ -47,9 +41,6 @@ async function getMusic() {
 			return response.json();
 		})
 		.then((data) => {
-			// chrome.runtime.sendMessage(data, (res) => {
-			// 	console.log("Track data sent to extension.");
-			// });
 			if (data.error) {
 				songNotFound();
 			}
@@ -69,15 +60,6 @@ async function getLocalValue(key) {
 		chrome.storage.sync.get(key, (data) => {
 			resolve(data);
 		});
-	});
-}
-
-// Get time difference between current time and time the last accessToken was generated
-async function elapsedTime(tokenTimestamp) {
-	return new Promise((resolve, reject) => {
-		const curentTime = Date.now();
-		const timeDifference = (curentTime - tokenTimestamp) / 1000;
-		resolve(timeDifference);
 	});
 }
 
@@ -102,7 +84,6 @@ async function getNewTokens(refreshToken) {
 		})
 			.then((response) => response.json())
 			.then((data) => {
-				// console.log(data)
 				resolve(data);
 			})
 			.catch((error) => {
@@ -180,12 +161,10 @@ async function spotifyLogin() {
 		`&code_challenge=${code_challenge}` +
 		`&code_challenge_method=${code_challenge_method}`;
 
-	chrome.identity.launchWebAuthFlow(
-		{
+	chrome.identity.launchWebAuthFlow({
 			url: url,
 			interactive: true,
-		},
-		(redirectUrl) => {
+		}, (redirectUrl) => {
 			const url = new URL(redirectUrl);
 			const params = new URLSearchParams(url.search);
 			let authToken = params.get("code");
@@ -208,14 +187,11 @@ async function spotifyLogin() {
 				})
 					.then((response) => response.json())
 					.then((data) => {
-						console.log(data);
-						chrome.storage.sync.set(
-							{
+						chrome.storage.sync.set({
 								refreshToken: data.refresh_token,
 								accessToken: data.access_token,
 								accessTokenTimestamp: Date.now(),
-							},
-							() => {
+							}, () => {
 								const payload = {
 									message: "logged in",
 								};
@@ -262,13 +238,4 @@ async function challenge_from_verifier(verifier) {
 	let hashedString = await sha256(verifier);
 	let base64encoded = base64urlencode(hashedString);
 	return base64encoded;
-}
-
-// Retrieve data stored in local storage. Find item by key
-async function getLocalValue(key) {
-	return new Promise((resolve, reject) => {
-		chrome.storage.sync.get(key, (data) => {
-			resolve(data);
-		});
-	});
 }
