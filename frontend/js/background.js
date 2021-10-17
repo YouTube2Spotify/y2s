@@ -12,8 +12,8 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 });
 
 async function getMusic() {
-	const accessTokenTime = await getLocalValue("timeStamp");
-	const timeDifference = await elapsedTime(accessTokenTime.timeStamp);
+	const accessTokenTime = await getLocalValue("accessTokenTimestamp");
+	const timeDifference = await elapsedTime(accessTokenTime.accessTokenTimestamp);
 
 	// Generate new tokens if 50 min has elapsed since generation of last access token
 	if (timeDifference > 3000) {
@@ -25,7 +25,7 @@ async function getMusic() {
 			{
 				refreshToken: newToken.refresh_token,
 				accessToken: newToken.access_token,
-				timeStamp: Date.now(),
+				accessTokenTimestamp: Date.now(),
 			},
 			() => {
 				console.log("new access token stored successfully");
@@ -36,7 +36,7 @@ async function getMusic() {
 	const accessToken = await getLocalValue("accessToken");
 	const data = { videoUrl: tabUrl, accessToken: accessToken.accessToken };
 
-	fetch(`https://y2s.main.benchan.tech/api/like_song`, {
+	fetch(`http://localhost:3000/api/like_song`, {
 		method: "POST",
 		mode: "cors",
 		headers: { "Content-Type": "application/json" },
@@ -113,36 +113,38 @@ async function getNewTokens(refreshToken) {
 // When song is found and added successfully to Spotify, the data is stored in local storage.
 // This is used so that the information can be viewed on the chrome extension popup.
 function songAdded(data) {
-	chrome.storage.sync.set({
-		addedSongTitle: data.title,
-		addedSongArtist: data.artist,
-		songAddedTime: Date.now(),
+	chrome.storage.sync.remove(["error"], () => { // Remove any existing error messages
+		chrome.storage.sync.set({
+			addedSongTitle: data.title,
+			addedSongArtist: data.artist,
+			songAddedTime: Date.now()
+		});
+
+		// Send notification to desktop
+		chrome.notifications.create(
+			"Song added!",
+			{
+				type: "basic",
+				iconUrl: "../images/icon32.png",
+				title: "Song added to Spotify!",
+				message: `${data.title} by ${data.artist} has been added to your liked songs on Spotify!`,
+			},
+			() => {
+				console.log("notification sent!");
+			}
+		);
+
+		// Show notification badge
+		chrome.action.setBadgeBackgroundColor({ color: "red" });
+		chrome.action.setBadgeText({ text: "1" });
 	});
-
-	// Send notification to desktop
-	chrome.notifications.create(
-		"Song added!",
-		{
-			type: "basic",
-			iconUrl: "../images/icon32.png",
-			title: "Song added to Spotify!",
-			message: `${data.title} by ${data.artist} has been added to your liked songs on Spotify!`,
-		},
-		() => {
-			console.log("notification sent!");
-		}
-	);
-
-	// Show notification badge
-	chrome.action.setBadgeBackgroundColor({ color: "red" });
-	chrome.action.setBadgeText({ text: "1" });
 }
 
 // Delete song info from local storage if song is not successfully added to Spotify. This
 // will trigger the chrome popup to notify the user that the song was not found and therefore
 // unable to be added.
 function songNotFound() {
-	chrome.storage.sync.remove(["addedSongTitle", "addedSongArtist", "songAddedTime"], () => {
+	chrome.storage.sync.remove(["addedSongTitle", "addedSongArtist", "songAddedTime"], () => { // Remove previously added tracks history
 		chrome.storage.sync.set({ error: "Song not found" });
 		chrome.notifications.create(
 			"Song not found",
@@ -156,6 +158,10 @@ function songNotFound() {
 				console.log("song not found notification sent!");
 			}
 		);
+
+		// Show notification badge
+		chrome.action.setBadgeBackgroundColor({ color: "red" });
+		chrome.action.setBadgeText({ text: "1" });
 	});
 }
 
@@ -213,7 +219,7 @@ async function spotifyLogin() {
 							{
 								refreshToken: data.refresh_token,
 								accessToken: data.access_token,
-								timeStamp: Date.now(),
+								accessTokenTimestamp: Date.now(),
 							},
 							() => {
 								const payload = {

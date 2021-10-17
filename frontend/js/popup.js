@@ -10,23 +10,27 @@ document.addEventListener("DOMContentLoaded", async () => {
 	// Hide any notification badges currently showing
   chrome.action.setBadgeText({ text: ''});
 
+	// Get all data in local storage
+	const localStorage = await getLocalStorage();
+
 	// Check local storage to see what the latest added song is. Update popup to reflect
 	// name and artist of the latest song added to Spotify liked songs. This method is required
 	// because chrome extension popups are destroyed when closed and can't update in the bg???
-	const newSong = await getLocalValue('addedSongTitle')
-	if (newSong.addedSongTitle) {
-		const newSongArtist = await getLocalValue('addedSongArtist');
-		const timeStored = await getLocalValue('songAddedTime');
+	if (localStorage.addedSongTitle) {
 		const currentTime = Date.now();
-		const timePassed = (((currentTime - timeStored.songAddedTime) / 1000) / 60).toFixed(1);
-		let songAdded = document.createElement('p');
-		songAdded.innerHTML = `${newSong.addedSongTitle} by ${newSongArtist.addedSongArtist} was added to your liked songs on Spotify ${timePassed} minutes ago!`
-		document.getElementById('song-added').appendChild(songAdded);
-	} else {
-		let songNotFound = document.createElement('p');
-		songNotFound.innerHTML = 'The last song you attempted to add to Spotify was not found.'
-		document.getElementById('song-added').append(songNotFound);
-	};
+		const timePassed = (((currentTime - localStorage.songAddedTime) / 1000) / 60).toFixed(1);
+		let message = document.createElement('p');
+		message.innerHTML = `${localStorage.addedSongTitle} by ${localStorage.addedSongArtist} was added to your liked songs on Spotify ${timePassed} minutes ago!`
+		document.getElementById('song-added').appendChild(message);
+	} else if (!localStorage.addedSongTitle && !localStorage.error) {
+			let message = document.createElement('p');
+			message.innerHTML = 'Click the button in the YouTube player to add the current song to your Spotify liked songs list!'
+			document.getElementById('song-added').append(message);
+	} else{
+			let message = document.createElement('p');
+			message.innerHTML = 'The last song you attempted to add to Spotify was not found.'
+			document.getElementById('song-added').append(message);
+	}
 
 	chrome.storage.sync.get('refreshToken', data => {
 		// If refresh token already exists, remove Spotify login button from extension
@@ -56,10 +60,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 		document.getElementById('login-flow').appendChild(loggedInMessage);
 	};
 
-	// Retrieve data stored in local storage. Find item by key
-	async function getLocalValue(key) {
-		return new Promise((resolve, reject) => {
-			chrome.storage.sync.get(key, (data) => {
+	// Retrieve all data stored in local storage
+	async function getLocalStorage() {
+		return new Promise ((resolve, reject) => {
+			chrome.storage.sync.get(null, data => {
 				resolve(data);
 			});
 		});
