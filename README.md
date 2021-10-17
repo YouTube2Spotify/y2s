@@ -20,19 +20,22 @@
         -   Obtain [AudD](https://audd.io/) API key
         -   Set environment variables
         -   Run the application
+    -   [Installing the Chrome extension](#installing-the-chrome-extension)
     -   [Releases](#releases)
         -   [Backend](#backend)
         -   [Chrome Extension](#chrome-extension)
 
 # Running the backend locally
 
+Note: These steps are listed for developmental purposes. It is not necessary to run the backend locally on your machine in order for the Chrome extension to function as the extension is already connected to our backend server.
+
 1. Set up base files
 
     ```
-    git clone https://github.com/benchan777/y2s.git
-    cd backend/y2s
-    npm install
-    cp .env.sample .env
+    $ git clone https://github.com/benchan777/y2s.git
+    $ cd backend/y2s
+    $ npm install
+    $ cp .env.sample .env
     ```
 
 1. Ensure Python3 is installed (necessary for YouTubeDL)
@@ -63,6 +66,22 @@
 1. Run the application!
     - `npm start`
 
+1. **(OPTIONAL)** See step 5 of [Installing the Chrome extension](#installing-the-chrome-extension) if you want to connect the Chrome extension to your local backend server
+
+# Installing the Chrome extension
+
+1. Go to `chrome://extensions/` in Chrome's URL bar
+
+1. Enable developer mode on the upper right hand corner of the page
+
+1. Click **Load unpacked** on the upper left hand corder of the page after enabling developer mode
+
+1. Navigate to the root of the extension's folder and load the extension
+
+1. **(OPTIONAL)** If you are running the backend server locally and want to connect the extension to it, change the URL in the fetch request of `getMusic()` located in `/frontend/js/background.js` to your development server's local address
+
+1. The extension should now be loaded and running in your browser
+
 # Releases
 ## Backend
 
@@ -80,5 +99,7 @@
     - Options page to toggle different settings in the extension
 
 ### License
+
+-----
 
 `Y2S` is available under the MIT license. See the [LICENSE](https://github.com/benchan777/y2s/blob/main/LICENSE) for more info.
