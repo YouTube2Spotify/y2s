@@ -83,6 +83,13 @@ const matchAudio = (url, accessToken) => {
 						reject({ error: "No matching spotify song" });
 					}
 				});
+			})
+			.catch( err => {
+				// Delete webm and mp3
+				fs.unlinkSync(videoPath);
+				fs.unlinkSync(audioPath);
+				
+				reject({ error: "Error creating FormData. Possible lack of env file." });
 			});
 	});
 };
@@ -140,7 +147,7 @@ const searchSpotify = (accessToken, title, artist) => {
 const downloadVideo = (url) => {
 	return new Promise((resolve, reject) => {
 		console.log("Downloading video...");
-		let processVideo = spawn("python", [`${__dirname}/downloadVideo.py`, url]);
+		let processVideo = spawn("python3", [`${__dirname}/downloadVideo.py`, url]);
 
 		processVideo.stdout.on("data", (data) => {
 			resolve();
