@@ -175,7 +175,7 @@ const odesli = (url, accessToken) => {
 		const whitelist = ['yandex', 'pandora', 'deezer', 'tidal', 'amazonMusic', 'napster'];
 
 		let options = {
-			url: `https://api.song.link/v1-alpha.1/links?url=${query}&platform=youtube`,
+			url: `https://api.song.link/v1-alpha.1/links?url=${query}&platform=youtube&key=${process.env.ODESLI_API_KEY}`,
 			method: 'GET',
 			json: true
 		};
