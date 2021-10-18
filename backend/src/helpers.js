@@ -284,6 +284,38 @@ const odesli = (url, accessToken) => {
 							})
 				}	else {
 						resolve({ error: 'Spotify data not found'});
+
+						// let promises = [];
+
+						// for (const provider in response.data.linksByPlatform) {
+						// 	promises.push(new Promise((resolve, reject) => {
+						// 		if (whitelisted.includes(provider)) {
+						// 			console.log(provider)
+
+						// 			console.log(response.data.linksByPlatform[platform])
+						// 			const uniqueId = response.data.linksByPlatform[platform].entityUniqueId;
+	
+						// 			data = {
+						// 				title: response.data.entitiesByUniqueId[uniqueId].title,
+						// 				artist: response.data.entitiesByUniqueId[uniqueId].artistName,
+						// 			};
+	
+						// 			searchSpotify(accessToken, data.title, data.artist)
+						// 				.then( id => {
+						// 					data.spotifyId = id;
+						// 					resolve(data);
+						// 				})
+						// 				.catch( err => {
+						// 					reject(err);
+						// 				})
+						// 		} else {
+						// 				resolve({ error: 'Spotify data not found'});
+						// 		}
+						// 	}))
+						// }
+						// Promise.all(promises).then(result => {
+						// 	console.log(result)
+						// })
 				}
 			})
 			.catch( error => {
