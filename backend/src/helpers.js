@@ -37,7 +37,7 @@ const matchAudio = (url, accessToken) => {
 
 			if (res.data.result != null) {
 				// audd.io recognizes song
-				console.log(res.data.result);
+				// console.log(res.data.result);
 
 				if (res.data.result.spotify) {
 					// audd.io returns spotify data
@@ -132,11 +132,7 @@ const downloadVideo = (url) => {
 		let processVideo = spawn("python3", [`${__dirname}/downloadVideo.py`, url]);
 
 		processVideo.stdout.on("data", (data) => {
-			if (data.toString() == "noMetadata\n") {
-				resolve("no metadata");
-			} else if (data.toString() == "metadataFound\n") {
-				resolve("found metadata");
-			}
+			resolve();
 		});
 
 		processVideo.stderr.on("data", (data) => console.log(data.toString()));
@@ -161,4 +157,37 @@ const convertVideo = (videoId) => {
 	});
 };
 
-module.exports = { matchAudio, likeSpotifyTrack, downloadVideo, convertVideo, searchSpotify };
+const odesli = (url) => {
+	return new Promise((resolve, reject) => {
+		const query = encodeURI(url);
+		const platform = 'youtube';
+
+		let options = {
+			url: `https://api.song.link/v1-alpha.1/links?url=${query}&platform=${platform}`,
+			method: 'GET',
+			json: true
+		};
+
+		axios(options)
+			.then( response => {
+				if (response.data.linksByPlatform.spotify) {
+					const uniqueId = response.data.linksByPlatform.spotify.entityUniqueId;
+
+					const data = {
+						title: response.data.entitiesByUniqueId[uniqueId].title,
+						artist: response.data.entitiesByUniqueId[uniqueId].artistName,
+						spotifyId: response.data.entitiesByUniqueId[uniqueId].id
+					};
+
+					resolve(data);
+				} else {
+						resolve({ error: 'Spotify data not found'});
+				}
+			})
+			.catch( error => {
+				reject(error);
+			})
+	});
+};
+
+module.exports = { matchAudio, likeSpotifyTrack, downloadVideo, convertVideo, odesli };

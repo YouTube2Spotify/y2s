@@ -5,81 +5,40 @@ const {
 	likeSpotifyTrack,
 	downloadVideo,
 	convertVideo,
-	searchSpotify,
+	odesli,
 } = require("../helpers");
 const util = require("util");
 
-let pythonPayload;
-
 // Recognize vid's audio, like song on spotify, return song metadata
 router.post("/like_song", async (req, res) => {
-	let songInfo;
 	let accessToken = req.body.accessToken;
 	let vidURL = req.body.videoUrl;
 	let videoId = vidURL.split("?v=")[1];
 
 	try {
-		const metaDataResult = await downloadVideo(vidURL);
+		const odesliData = await odesli(vidURL);
 
-		// If metadata is found, skip the entire audio conversion & audio matching process
-		// Instead, use results from searchSpotify()
-		if (metaDataResult == "found metadata") {
-			console.log(`Metadata: ${pythonPayload.title} - ${pythonPayload.artist}`);
-			const songId = await searchSpotify(accessToken, pythonPayload.title, pythonPayload.artist);
-			likeSpotifyTrack(accessToken, songId).then(() => {
-				res.json(pythonPayload);
-			});
+		// Attempt to find song using Odesli
+		if (odesliData.spotifyId) {
+			console.log('Song info found with Odesli')
+			likeSpotifyTrack(accessToken, odesliData.spotifyId)
+				.then( () => {
+					res.json(odesliData);
+				})
 		}
 
-		// If no metadata is found, continue on with the normal audio conversion & matching process
-		if (metaDataResult == "no metadata") {
-			console.log("No metadata");
+		// If we can't find the song using Odesli, download the audio instead and send it
+		// to AudD.io for recognition
+		if (odesliData.error) {
+			await downloadVideo(vidURL);
 			await convertVideo(videoId);
-
-			matchAudio(vidURL, accessToken)
-				.then((response) => {
-					songInfo = response;
-					likeSpotifyTrack(accessToken, songInfo.spotifyId)
-						.then(() => {
-							console.log(songInfo);
-							res.json(songInfo);
-						})
-						.catch((error) => {
-							console.log(error);
-							res.json(error);
-						});
-				})
-				.catch((error) => {
-					console.log(error);
-					res.json(error);
-				});
+			const songInfo = await matchAudio(vidURL, accessToken);
+			await likeSpotifyTrack(accessToken, songInfo.spotifyId);
+			res.json(songInfo);
 		}
 	} catch (error) {
-		return res.json(error);
+			return res.json(error);
 	}
-
-	// matchAudio(vidURL, accessToken)
-	// 	.then((res) => {
-	// 		songInfo = res;
-	// 		likeSpotifyTrack(accessToken, songInfo.spotifyId)
-	// 			.then( () => {
-	// 				console.log(songInfo);
-	// 				res.json(songInfo);
-	// 			})
-	// 			.catch( error => {
-	// 				console.log(error);
-	// 				res.json(error);
-	// 			})
-	// 	})
-	// 	.catch((error) => {
-	// 		console.log(error);
-	// 		res.json(error);
-	// 	});
-});
-
-router.post("/python", (req, res) => {
-	pythonPayload = req.body;
-	res.send("data received"); // Required because python requests.post expects a response
 });
 
 module.exports = router;
