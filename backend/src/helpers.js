@@ -88,7 +88,10 @@ const likeSpotifyTrack = (accessToken, trackId) => {
 		axios(options).then(() => {
 			console.log("Song liked.");
 			resolve();
-		});
+		})
+		.catch( err => {
+			reject({ error: 'Failed to like song on Spotify' })
+		})
 	});
 };
 
@@ -120,7 +123,8 @@ const searchSpotify = (accessToken, title, artist) => {
 					}
 				})
 				.catch((err) => {
-					reject(err);
+					console.log('Axios failed to make API request to Spotify search')
+					reject({ error: 'Axios failed to make API request to Spotify search' });
 				});
 		}
 	});
@@ -135,7 +139,10 @@ const downloadVideo = (url) => {
 			resolve();
 		});
 
-		processVideo.stderr.on("data", (data) => console.log(data.toString()));
+		processVideo.stderr.on("data", (data) => {
+			console.log(data.toString());
+			reject({ error: 'Failed to download video'});
+		});
 	});
 };
 
@@ -159,12 +166,16 @@ const convertVideo = (videoId) => {
 
 const odesli = (url, accessToken) => {
 	return new Promise((resolve, reject) => {
-		let data;
+		let data; // Keep track of title & artist to send to Chrome extension
+		let platform;
 		const query = encodeURI(url.split('&')[0]);
-		const platform = 'youtube';
+
+		// Ignore certain platforms such as soundcloud because they have title/artist names 
+		// that are unsuitable for use by Spotify search
+		const whitelist = ['yandex', 'pandora', 'deezer', 'tidal', 'amazonMusic', 'napster'];
 
 		let options = {
-			url: `https://api.song.link/v1-alpha.1/links?url=${query}&platform=${platform}`,
+			url: `https://api.song.link/v1-alpha.1/links?url=${query}&platform=youtube`,
 			method: 'GET',
 			json: true
 		};
@@ -181,145 +192,43 @@ const odesli = (url, accessToken) => {
 					};
 
 					resolve(data);
-
-				// If data not found in Spotify, check yandex
-				// The below checks do not return spotify id's. Therefore, we must run searchSpotify()
-				} else if (response.data.linksByPlatform.yandex) {
-						const uniqueId = response.data.linksByPlatform.yandex.entityUniqueId;
-
-						data = {
-							title: response.data.entitiesByUniqueId[uniqueId].title,
-							artist: response.data.entitiesByUniqueId[uniqueId].artistName,
-						};
-
-						searchSpotify(accessToken, data.title, data.artist)
-							.then( id => {
-								data.spotifyId = id;
-								resolve(data);
-							})
-							.catch( err => {
-								reject(err);
-							})
-
-				// If data not found in Spotify & yandex, check pandora
-				}	else if (response.data.linksByPlatform.pandora) {
-						const uniqueId = response.data.linksByPlatform.pandora.entityUniqueId;
-
-						data = {
-							title: response.data.entitiesByUniqueId[uniqueId].title,
-							artist: response.data.entitiesByUniqueId[uniqueId].artistName,
-						};
-
-						searchSpotify(accessToken, data.title, data.artist)
-							.then( id => {
-								data.spotifyId = id;
-								resolve(data);
-							})
-							.catch( err => {
-								reject(err);
-							})
-				}	else if (response.data.linksByPlatform.amazonMusic) {
-						const uniqueId = response.data.linksByPlatform.amazonMusic.entityUniqueId;
-
-						data = {
-							title: response.data.entitiesByUniqueId[uniqueId].title,
-							artist: response.data.entitiesByUniqueId[uniqueId].artistName,
-						};
-
-						searchSpotify(accessToken, data.title, data.artist)
-							.then( id => {
-								data.spotifyId = id;
-								resolve(data);
-							})
-							.catch( err => {
-								reject(err);
-							})
-				} else if (response.data.linksByPlatform.deezer) {
-						const uniqueId = response.data.linksByPlatform.deezer.entityUniqueId;
-
-						data = {
-							title: response.data.entitiesByUniqueId[uniqueId].title,
-							artist: response.data.entitiesByUniqueId[uniqueId].artistName,
-						};
-
-						searchSpotify(accessToken, data.title, data.artist)
-							.then( id => {
-								data.spotifyId = id;
-								resolve(data);
-							})
-							.catch( err => {
-								reject(err);
-							})
-				} else if (response.data.linksByPlatform.tidal) {
-						const uniqueId = response.data.linksByPlatform.tidal.entityUniqueId;
-
-						data = {
-							title: response.data.entitiesByUniqueId[uniqueId].title,
-							artist: response.data.entitiesByUniqueId[uniqueId].artistName,
-						};
-
-						searchSpotify(accessToken, data.title, data.artist)
-							.then( id => {
-								data.spotifyId = id;
-								resolve(data);
-							})
-							.catch( err => {
-								reject(err);
-							})
-				}	else if (response.data.linksByPlatform.napster) {
-						const uniqueId = response.data.linksByPlatform.napster.entityUniqueId;
-
-						data = {
-							title: response.data.entitiesByUniqueId[uniqueId].title,
-							artist: response.data.entitiesByUniqueId[uniqueId].artistName,
-						};
-
-						searchSpotify(accessToken, data.title, data.artist)
-							.then( id => {
-								data.spotifyId = id;
-								resolve(data);
-							})
-							.catch( err => {
-								reject(err);
-							})
 				}	else {
-						resolve({ error: 'Spotify data not found'});
 
-						// let promises = [];
+						for (const provider in response.data.linksByPlatform) {
+							if (whitelist.includes(provider)) {
+								platform = provider;
+								break;
+							}
+						}
 
-						// for (const provider in response.data.linksByPlatform) {
-						// 	promises.push(new Promise((resolve, reject) => {
-						// 		if (whitelisted.includes(provider)) {
-						// 			console.log(provider)
+						// If suitable alternate platform found on Odesli, use the provided title and artist 
+						if (platform) {
+							console.log(`alternate platform found via Odesli: ${platform}`);
+							const uniqueId = response.data.linksByPlatform[platform].entityUniqueId;
 
-						// 			console.log(response.data.linksByPlatform[platform])
-						// 			const uniqueId = response.data.linksByPlatform[platform].entityUniqueId;
-	
-						// 			data = {
-						// 				title: response.data.entitiesByUniqueId[uniqueId].title,
-						// 				artist: response.data.entitiesByUniqueId[uniqueId].artistName,
-						// 			};
-	
-						// 			searchSpotify(accessToken, data.title, data.artist)
-						// 				.then( id => {
-						// 					data.spotifyId = id;
-						// 					resolve(data);
-						// 				})
-						// 				.catch( err => {
-						// 					reject(err);
-						// 				})
-						// 		} else {
-						// 				resolve({ error: 'Spotify data not found'});
-						// 		}
-						// 	}))
-						// }
-						// Promise.all(promises).then(result => {
-						// 	console.log(result)
-						// })
+							data = {
+								title: response.data.entitiesByUniqueId[uniqueId].title,
+								artist: response.data.entitiesByUniqueId[uniqueId].artistName,
+							};
+
+							searchSpotify(accessToken, data.title, data.artist)
+								.then( id => {
+									platform = undefined;
+									console.log(`reset platform: ${platform}`)
+									data.spotifyId = id;
+									resolve(data);
+								})
+								.catch( err => {
+									reject({ error: 'Failed to search Spotify using info from Odesli'});
+								})
+						} else {
+							resolve({ error: 'Could not find song info on Odesli'});
+						}
 				}
 			})
 			.catch( error => {
-				reject(error);
+				console.log('Axios failed to make API request to Odesli');
+				reject({ error: 'Axios failed to make API request to Odesli'});
 			})
 	});
 };
