@@ -157,9 +157,10 @@ const convertVideo = (videoId) => {
 	});
 };
 
-const odesli = (url) => {
+const odesli = (url, accessToken) => {
 	return new Promise((resolve, reject) => {
-		const query = encodeURI(url);
+		let data;
+		const query = encodeURI(url.split('&')[0]);
 		const platform = 'youtube';
 
 		let options = {
@@ -173,14 +174,115 @@ const odesli = (url) => {
 				if (response.data.linksByPlatform.spotify) {
 					const uniqueId = response.data.linksByPlatform.spotify.entityUniqueId;
 
-					const data = {
+					data = {
 						title: response.data.entitiesByUniqueId[uniqueId].title,
 						artist: response.data.entitiesByUniqueId[uniqueId].artistName,
 						spotifyId: response.data.entitiesByUniqueId[uniqueId].id
 					};
 
 					resolve(data);
-				} else {
+
+				// If data not found in Spotify, check yandex
+				// The below checks do not return spotify id's. Therefore, we must run searchSpotify()
+				} else if (response.data.linksByPlatform.yandex) {
+						const uniqueId = response.data.linksByPlatform.yandex.entityUniqueId;
+
+						data = {
+							title: response.data.entitiesByUniqueId[uniqueId].title,
+							artist: response.data.entitiesByUniqueId[uniqueId].artistName,
+						};
+
+						searchSpotify(accessToken, data.title, data.artist)
+							.then( id => {
+								data.spotifyId = id;
+								resolve(data);
+							})
+							.catch( err => {
+								reject(err);
+							})
+
+				// If data not found in Spotify & yandex, check pandora
+				}	else if (response.data.linksByPlatform.pandora) {
+						const uniqueId = response.data.linksByPlatform.pandora.entityUniqueId;
+
+						data = {
+							title: response.data.entitiesByUniqueId[uniqueId].title,
+							artist: response.data.entitiesByUniqueId[uniqueId].artistName,
+						};
+
+						searchSpotify(accessToken, data.title, data.artist)
+							.then( id => {
+								data.spotifyId = id;
+								resolve(data);
+							})
+							.catch( err => {
+								reject(err);
+							})
+				}	else if (response.data.linksByPlatform.amazonMusic) {
+						const uniqueId = response.data.linksByPlatform.amazonMusic.entityUniqueId;
+
+						data = {
+							title: response.data.entitiesByUniqueId[uniqueId].title,
+							artist: response.data.entitiesByUniqueId[uniqueId].artistName,
+						};
+
+						searchSpotify(accessToken, data.title, data.artist)
+							.then( id => {
+								data.spotifyId = id;
+								resolve(data);
+							})
+							.catch( err => {
+								reject(err);
+							})
+				} else if (response.data.linksByPlatform.deezer) {
+						const uniqueId = response.data.linksByPlatform.deezer.entityUniqueId;
+
+						data = {
+							title: response.data.entitiesByUniqueId[uniqueId].title,
+							artist: response.data.entitiesByUniqueId[uniqueId].artistName,
+						};
+
+						searchSpotify(accessToken, data.title, data.artist)
+							.then( id => {
+								data.spotifyId = id;
+								resolve(data);
+							})
+							.catch( err => {
+								reject(err);
+							})
+				} else if (response.data.linksByPlatform.tidal) {
+						const uniqueId = response.data.linksByPlatform.tidal.entityUniqueId;
+
+						data = {
+							title: response.data.entitiesByUniqueId[uniqueId].title,
+							artist: response.data.entitiesByUniqueId[uniqueId].artistName,
+						};
+
+						searchSpotify(accessToken, data.title, data.artist)
+							.then( id => {
+								data.spotifyId = id;
+								resolve(data);
+							})
+							.catch( err => {
+								reject(err);
+							})
+				}	else if (response.data.linksByPlatform.napster) {
+						const uniqueId = response.data.linksByPlatform.napster.entityUniqueId;
+
+						data = {
+							title: response.data.entitiesByUniqueId[uniqueId].title,
+							artist: response.data.entitiesByUniqueId[uniqueId].artistName,
+						};
+
+						searchSpotify(accessToken, data.title, data.artist)
+							.then( id => {
+								data.spotifyId = id;
+								resolve(data);
+							})
+							.catch( err => {
+								reject(err);
+							})
+				}	else {
 						resolve({ error: 'Spotify data not found'});
 				}
 			})

@@ -16,7 +16,7 @@ router.post("/like_song", async (req, res) => {
 	let videoId = vidURL.split("?v=")[1];
 
 	try {
-		const odesliData = await odesli(vidURL);
+		const odesliData = await odesli(vidURL, accessToken);
 
 		// Attempt to find song using Odesli
 		if (odesliData.spotifyId) {
