@@ -1,6 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const { matchAudio, likeSpotifyTrack, downloadVideo, convertVideo, searchSpotify } = require("../helpers");
+const {
+	matchAudio,
+	likeSpotifyTrack,
+	downloadVideo,
+	convertVideo,
+	searchSpotify,
+} = require("../helpers");
 const util = require("util");
 
 let pythonPayload;
@@ -17,40 +23,38 @@ router.post("/like_song", async (req, res) => {
 
 		// If metadata is found, skip the entire audio conversion & audio matching process
 		// Instead, use results from searchSpotify()
-		if (metaDataResult == 'found metadata') {
-			console.log(pythonPayload.title)
-			console.log(pythonPayload.artist)
+		if (metaDataResult == "found metadata") {
+			console.log(`Metadata: ${pythonPayload.title} - ${pythonPayload.artist}`);
 			const songId = await searchSpotify(accessToken, pythonPayload.title, pythonPayload.artist);
-			likeSpotifyTrack(accessToken, songId)
-				.then( () => {
-					res.json(pythonPayload)
-				})
+			likeSpotifyTrack(accessToken, songId).then(() => {
+				res.json(pythonPayload);
+			});
 		}
 
 		// If no metadata is found, continue on with the normal audio conversion & matching process
-		if (metaDataResult == 'no metadata') {
+		if (metaDataResult == "no metadata") {
+			console.log("No metadata");
 			await convertVideo(videoId);
 
 			matchAudio(vidURL, accessToken)
 				.then((response) => {
 					songInfo = response;
 					likeSpotifyTrack(accessToken, songInfo.spotifyId)
-						.then( () => {
+						.then(() => {
 							console.log(songInfo);
 							res.json(songInfo);
 						})
-						.catch( error => {
+						.catch((error) => {
 							console.log(error);
 							res.json(error);
-						})
+						});
 				})
 				.catch((error) => {
 					console.log(error);
 					res.json(error);
 				});
 		}
-
-	} catch(error) {
+	} catch (error) {
 		return res.json(error);
 	}
 
@@ -74,8 +78,8 @@ router.post("/like_song", async (req, res) => {
 });
 
 router.post("/python", (req, res) => {
-	pythonPayload = req.body
-	res.send('data received') // Required because python requests.post expects a response
-})
+	pythonPayload = req.body;
+	res.send("data received"); // Required because python requests.post expects a response
+});
 
 module.exports = router;

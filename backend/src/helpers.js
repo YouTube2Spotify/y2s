@@ -84,12 +84,12 @@ const likeSpotifyTrack = (accessToken, trackId) => {
 			},
 			json: true,
 		};
-	
+
 		axios(options).then(() => {
 			console.log("Song liked.");
 			resolve();
 		});
-	})
+	});
 };
 
 const searchSpotify = (accessToken, title, artist) => {
@@ -132,10 +132,10 @@ const downloadVideo = (url) => {
 		let processVideo = spawn("python3", [`${__dirname}/downloadVideo.py`, url]);
 
 		processVideo.stdout.on("data", (data) => {
-			if (data.toString() == 'noMetadata\n') {
-				resolve('no metadata')
-			} else if (data.toString() == 'metadataFound\n') {
-				resolve('found metadata')
+			if (data.toString() == "noMetadata\n") {
+				resolve("no metadata");
+			} else if (data.toString() == "metadataFound\n") {
+				resolve("found metadata");
 			}
 		});
 
