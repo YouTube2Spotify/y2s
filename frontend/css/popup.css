@@ -3,3 +3,7 @@ body {
 	width: 300px;
 	overflow: auto;
 }
+
+footer {
+	font-size: 10px;
+}
