@@ -161,11 +161,4 @@ const convertVideo = (videoId) => {
 	});
 };
 
-// searchSpotify(
-// 	"BQA3nnC5J40RMvyuEy_mIFZvtuc874-W6cdp0tJVQFhQxRBssXX3goL2nkSEXDuFDQ1EkX5yAduROs2M4w6nplPjwNS_sE-Ha-3ERLgim5UQPY0_yrb_OHaKdeBoxk-2bpZx9j8ftzJxKV1701j_Iy5Txn2_G8VKolYct6Vqf5qv4dvfUUBwuGURDhTtYbr7Mecx4_Y",
-// 	"test",
-// 	"Test"
-// )
-// 	.then(() => console.log("hi"))
-// 	.catch((err) => console.log(err));
 module.exports = { matchAudio, likeSpotifyTrack, downloadVideo, convertVideo, searchSpotify };
