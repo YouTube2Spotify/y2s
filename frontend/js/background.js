@@ -42,7 +42,7 @@ async function getMusic(url) {
 		})
 		.then((data) => {
 			if (data.error) {
-				songNotFound();
+				songNotFound(data);
 			}
 
 			if (data.title) {
@@ -121,9 +121,9 @@ function songAdded(data) {
 // Delete song info from local storage if song is not successfully added to Spotify. This
 // will trigger the chrome popup to notify the user that the song was not found and therefore
 // unable to be added.
-function songNotFound() {
+function songNotFound(data) {
 	chrome.storage.sync.remove(["addedSongTitle", "addedSongArtist", "songAddedTime"], () => { // Remove previously added tracks history
-		chrome.storage.sync.set({ error: "Song not found" }, () => {
+		chrome.storage.sync.set({ error: data.error }, () => {
 			chrome.notifications.create(
 				'', {
 					type: "basic",

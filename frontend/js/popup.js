@@ -13,6 +13,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 	// Get all data in local storage
 	const localStorage = await getLocalStorage();
 
+	// Show detailed error messages if user enabled the show debug setting in options
+	if (localStorage.showDebug == true) {
+		document.getElementById('debug-message').innerHTML = `Debug info: ${localStorage.error}`
+	}
+
 	// Check local storage to see what the latest added song is. Update popup to reflect
 	// name and artist of the latest song added to Spotify liked songs. This method is required
 	// because chrome extension popups are destroyed when closed and can't update in the bg???

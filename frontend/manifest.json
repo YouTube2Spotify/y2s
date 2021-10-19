@@ -1,7 +1,7 @@
 {
   "name": "YouTube 2 Spotify",
   "description": "Liking a YouTube song adds the song to your Spotify saved songs.",
-  "version": "1.0",
+  "version": "1.1",
   "manifest_version": 3,
   "background": {
     "service_worker": "/js/background.js"
