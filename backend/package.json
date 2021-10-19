@@ -15,8 +15,6 @@
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "fluent-ffmpeg": "^2.1.2",
-    "form-data": "^4.0.0",
-    "request": "^2.88.2",
-    "ytdl": "^1.4.1"
+    "form-data": "^4.0.0"
   }
 }

@@ -37,7 +37,7 @@ const matchAudio = (url, accessToken) => {
 
 			if (res.data.result != null) {
 				// audd.io recognizes song
-				console.log(res.data.result);
+				// console.log(res.data.result);
 
 				if (res.data.result.spotify) {
 					// audd.io returns spotify data
@@ -74,18 +74,25 @@ const matchAudio = (url, accessToken) => {
 };
 
 const likeSpotifyTrack = (accessToken, trackId) => {
-	let options = {
-		url: `https://api.spotify.com/v1/me/tracks?ids=${trackId}`,
-		method: "put",
-		headers: {
-			Authorization: "Bearer " + accessToken,
-			"Content-Type": "application/json",
-		},
-		json: true,
-	};
+	return new Promise((resolve, reject) => {
+		let options = {
+			url: `https://api.spotify.com/v1/me/tracks?ids=${trackId}`,
+			method: "put",
+			headers: {
+				Authorization: "Bearer " + accessToken,
+				"Content-Type": "application/json",
+			},
+			json: true,
+		};
 
-	axios(options).then(() => {
-		console.log("Song liked.");
+		axios(options)
+			.then(() => {
+				console.log("Song liked.");
+				resolve();
+			})
+			.catch((err) => {
+				reject({ error: "Failed to like song on Spotify" });
+			});
 	});
 };
 
@@ -117,7 +124,8 @@ const searchSpotify = (accessToken, title, artist) => {
 					}
 				})
 				.catch((err) => {
-					reject(err);
+					console.log("Axios failed to make API request to Spotify search");
+					reject({ error: "Axios failed to make API request to Spotify search" });
 				});
 		}
 	});
@@ -129,10 +137,13 @@ const downloadVideo = (url) => {
 		let processVideo = spawn("python3", [`${__dirname}/downloadVideo.py`, url]);
 
 		processVideo.stdout.on("data", (data) => {
-			resolve();
+			data = data.toString();
+			if (data == "Download complete\n") {
+				resolve();
+			} else {
+				reject({ error: "Failed to download video" });
+			}
 		});
-
-		processVideo.stderr.on("data", (data) => console.log(data.toString()));
 	});
 };
 
@@ -154,11 +165,72 @@ const convertVideo = (videoId) => {
 	});
 };
 
-// searchSpotify(
-// 	"BQA3nnC5J40RMvyuEy_mIFZvtuc874-W6cdp0tJVQFhQxRBssXX3goL2nkSEXDuFDQ1EkX5yAduROs2M4w6nplPjwNS_sE-Ha-3ERLgim5UQPY0_yrb_OHaKdeBoxk-2bpZx9j8ftzJxKV1701j_Iy5Txn2_G8VKolYct6Vqf5qv4dvfUUBwuGURDhTtYbr7Mecx4_Y",
-// 	"test",
-// 	"Test"
-// )
-// 	.then(() => console.log("hi"))
-// 	.catch((err) => console.log(err));
-module.exports = { matchAudio, likeSpotifyTrack, downloadVideo, convertVideo };
+const odesli = (url, accessToken) => {
+	return new Promise((resolve, reject) => {
+		let data; // Keep track of title & artist to send to Chrome extension
+		let platform;
+		const query = encodeURI(url.split("&")[0]);
+
+		// Ignore certain platforms such as soundcloud because they have title/artist names
+		// that are unsuitable for use by Spotify search
+		const whitelist = ["yandex", "pandora", "deezer", "tidal", "amazonMusic", "napster"];
+
+		let options = {
+			url: `https://api.song.link/v1-alpha.1/links?url=${query}&platform=youtube&key=${process.env.ODESLI_API_KEY}`,
+			method: "GET",
+			json: true,
+		};
+
+		axios(options)
+			.then((response) => {
+				if (response.data.linksByPlatform.spotify) {
+					const uniqueId = response.data.linksByPlatform.spotify.entityUniqueId;
+
+					data = {
+						title: response.data.entitiesByUniqueId[uniqueId].title,
+						artist: response.data.entitiesByUniqueId[uniqueId].artistName,
+						spotifyId: response.data.entitiesByUniqueId[uniqueId].id,
+					};
+
+					resolve(data);
+				} else {
+					for (const provider in response.data.linksByPlatform) {
+						if (whitelist.includes(provider)) {
+							platform = provider;
+							break;
+						}
+					}
+
+					// If suitable alternate platform found on Odesli, use the provided title and artist
+					if (platform) {
+						console.log(`alternate platform found via Odesli: ${platform}`);
+						const uniqueId = response.data.linksByPlatform[platform].entityUniqueId;
+
+						data = {
+							title: response.data.entitiesByUniqueId[uniqueId].title,
+							artist: response.data.entitiesByUniqueId[uniqueId].artistName,
+						};
+
+						searchSpotify(accessToken, data.title, data.artist)
+							.then((id) => {
+								platform = undefined;
+								console.log(`reset platform: ${platform}`);
+								data.spotifyId = id;
+								resolve(data);
+							})
+							.catch((err) => {
+								reject({ error: "Failed to search Spotify using info from Odesli" });
+							});
+					} else {
+						resolve({ error: "Could not find song info on Odesli" });
+					}
+				}
+			})
+			.catch((error) => {
+				console.log("Axios failed to make API request to Odesli");
+				reject({ error: "Axios failed to make API request to Odesli" });
+			});
+	});
+};
+
+module.exports = { matchAudio, likeSpotifyTrack, downloadVideo, convertVideo, odesli };

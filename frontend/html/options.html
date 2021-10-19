@@ -2,16 +2,19 @@
 <html>
 
 <head>
-  <link rel="stylesheet" href="../css/button.css">
+  <title>Y2S Options</title>
 </head>
 
 <body>
-  <div id="buttonDiv">
-  </div>
-  <div>
-    <p>Choose a different background color!</p>
-  </div>
+  <label>
+    <p style="font-size: 16px;">Y2S Options</p>
+    <input type="checkbox" id="show-debug-info">Show debug information in popup</input>
+  </label>
+
+  <div id="status-message"></div>
+  <button id="save-options">Save</button>
+
+  <script src="../js/options.js"></script>
 </body>
-<script src="../js/options.js"></script>
 
 </html>
