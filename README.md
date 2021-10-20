@@ -4,7 +4,7 @@
   <i>YouTube 2 Spotify saves the currently playing YouTube song into your Spotify library.</i>
 
   <br/>
-  <a href="https://github.com/YouTube2Spotify/y2s/releases">Get the extension here</a>
+  <p>Get the extension on the <a href="https://chrome.google.com/webstore/detail/youtube-2-spotify/nkgehjjhpbiljbikkfpnhjmlobabehcj">Chrome Store</a> or <a href="https://github.com/YouTube2Spotify/y2s/releases">GitHub</a></p>
 </div>
 
 ---

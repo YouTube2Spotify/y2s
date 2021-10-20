@@ -1,6 +1,6 @@
 {
   "name": "YouTube 2 Spotify",
-  "description": "Liking a YouTube song adds the song to your Spotify saved songs.",
+  "description": "Click the Y2S icon in the YouTube player to add the currently playing song to your Spotify saved songs.",
   "version": "1.1",
   "manifest_version": 3,
   "background": {
