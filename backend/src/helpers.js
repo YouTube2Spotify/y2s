@@ -138,7 +138,7 @@ const downloadVideo = (url) => {
 
 		processVideo.stdout.on("data", (data) => {
 			data = data.toString();
-			if (data == "Download complete\n") {
+			if (data == "Download complete") {
 				resolve();
 			} else {
 				reject({ error: "Failed to download video" });
